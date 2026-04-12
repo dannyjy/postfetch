@@ -14,6 +14,7 @@ const useFetch = (url: string) => {
                 setError(null)
                 setRetry(false)
                 setIsLoading(false)
+                return;
             }
 
             try {
@@ -24,7 +25,7 @@ const useFetch = (url: string) => {
                 if (!response.ok) {
                     throw new Error(`Error fetching post status ${response.status}`)
                 }
-                const post = await response.json();
+                const post: Post[] = await response.json();
                 setData(post)
 
             } catch (error) {
