@@ -8,6 +8,8 @@ const useFetch = (url: string) => {
     const [retry, setRetry] = useState(false)
     
     useEffect(() => {
+        const controller = new AbortController()
+
         async function fetchPosts() {
             if(!url) {
                 setData([])
@@ -21,7 +23,7 @@ const useFetch = (url: string) => {
                 setError(null)
                 setIsLoading(true);
                 setRetry(false)
-                const response = await fetch(url);
+                const response = await fetch(url,{signal: controller.signal});
                 if (!response.ok) {
                     throw new Error(`Error fetching post status ${response.status}`)
                 }
@@ -29,6 +31,10 @@ const useFetch = (url: string) => {
                 setData(post)
 
             } catch (error) {
+                if (error instanceof DOMException && error.name === "AbortError") {
+                    return
+                }
+
                 if (error instanceof Error) {
                     setError(error.message)
                     setRetry(true)
@@ -37,7 +43,12 @@ const useFetch = (url: string) => {
                 setIsLoading(false)
             }
         }
+
         fetchPosts()
+
+        return () => {
+            controller.abort()
+        }
     }, [url])
 
     return { data, isLoading, error, retry}
